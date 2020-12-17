@@ -90,7 +90,7 @@ function getGitHubData() {
 }
 function parseAssembla() {
     return __awaiter(this, void 0, void 0, function () {
-        var apiConfig, config, githubData, spacesResponse, spaces, index, space, spaceId, spaceName, pageNumber, ticketsUrl, ticketsResponse, tickets, repoName, ticketsIndex, ticket, ticketNumber, ticketSummary, gitHubIssueNumber, ticketCommentsUrl, ticketCommentsResponse, ticketComments, ticketCommentIndex, ticketComment, ticketAttachmentsUrl, ticketAttachmentResponse, ticketAttachments, ticketAttachmentsIndex, ticketAttachment, downloadUrl, ticketAttachmentId, fileName, attachmentDownloadResponse, path, dirPath, err_1;
+        var apiConfig, config, githubData, spacesResponse, spaces, spaceIndex, space, spaceId, spaceName, pageNumber, ticketsUrl, ticketsResponse, tickets, repoName, ticketsIndex, ticket, ticketNumber, ticketSummary, gitHubIssueNumber, ticketCommentsUrl, ticketCommentsResponse, ticketComments, ticketCommentIndex, ticketComment, ticketAttachmentsUrl, ticketAttachmentResponse, ticketAttachments, ticketAttachmentsIndex, ticketAttachment, downloadUrl, ticketAttachmentId, fileName, attachmentDownloadResponse, path, dirPath, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -107,11 +107,11 @@ function parseAssembla() {
                     spacesResponse = _a.sent();
                     spaces = spacesResponse.data;
                     console.log("> \uD83D\uDEF8  Got " + spaces.length + " assembla spaces to parse...");
-                    index = 0;
+                    spaceIndex = 0;
                     _a.label = 2;
                 case 2:
-                    if (!(index < spaces.length)) return [3 /*break*/, 29];
-                    space = spaces[index];
+                    if (!(spaceIndex < spaces.length)) return [3 /*break*/, 29];
+                    space = spaces[spaceIndex];
                     spaceId = space["id"];
                     spaceName = space["name"];
                     console.log(">> \u2604\uFE0F  Space " + spaceName + "...");
@@ -226,7 +226,7 @@ function parseAssembla() {
                     console.log(">> \u2705  Space " + spaceName + "...");
                     _a.label = 28;
                 case 28:
-                    index++;
+                    spaceIndex++;
                     return [3 /*break*/, 2];
                 case 29: return [2 /*return*/];
             }
