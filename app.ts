@@ -68,7 +68,7 @@ async function parseAssembla() {
         console.log(`>>> 🎟️  Got ${tickets.length} tickets ${ticketsUrl}`)
         pageNumber++;
 
-        const repoName = `assembla_${spaceName}`;
+        const repoName = `assembla_${spaceName}`.replace(" ", "-");
         await createRepoInGitHub(repoName);
 
         for (let ticketsIndex = 0; ticketsIndex < tickets.length; ticketsIndex++) {
@@ -115,7 +115,7 @@ async function parseAssembla() {
                 fs.mkdirSync(dirPath, { recursive: true });
                 fs.createWriteStream(join(dirPath, fileName)).write(attachmentDownloadResponse.data)
                 console.log(`>>>>> ⏬  Downloaded, please push the downloaded folders, I will add this as a comment to issue..`)
-                await addCommentToIssueInGitHub(repoName, gitHubIssueNumber, `AttachedPackage: 📦 ${join("https://github.com", encodeURI(githubData.orgName as string), encodeURI(repoName), "blob/main", ticketNumber + "", ticketAttachmentId + "", encodeURI(fileName))}. Check this repo for the attachment.`)
+                await addCommentToIssueInGitHub(repoName, gitHubIssueNumber, `AttachedPackage: 📦 ${join("https://github.com", githubData.orgName as string, repoName, "blob/main", ticketNumber + "", ticketAttachmentId + "", fileName)}. Check this repo for the attachment.`)
               }
               catch (err) {
                 console.log(`>>>>> ⚠️  Not downloadable..`)
