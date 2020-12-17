@@ -26,3 +26,5 @@ GITHUB_TOKEN="SETSOMEVALUEHERE"
 Attachments are downloaded to `.content` directory.
 
 Make sure you push them to GitHub as repositories!
+
+Issue comments just mention about these paths.
