@@ -110,12 +110,12 @@ async function parseAssembla() {
               console.log(`>>>>> 📂  Got ${fileName} attachment: ${downloadUrl}`)
               try {
                 const attachmentDownloadResponse = await Axios.get(downloadUrl, config);
-                const path = join(`${githubData.orgName}`, repoName, ticketNumber + "", ticketAttachmentId + "");
-                const dirPath = join(".content", path);
+                const path = join(ticketNumber + "", ticketAttachmentId + "");
+                const dirPath = join(".content", `${githubData.orgName}`, repoName, path);
                 fs.mkdirSync(dirPath, { recursive: true });
                 fs.createWriteStream(join(dirPath, fileName)).write(attachmentDownloadResponse.data)
                 console.log(`>>>>> ⏬  Downloaded, please push the downloaded folders, I will add this as a comment to issue..`)
-                await addCommentToIssueInGitHub(repoName, gitHubIssueNumber, `AttachedPackage: 📦 ${join(path, fileName)}. Check this repo for the attachment.`)
+                await addCommentToIssueInGitHub(repoName, gitHubIssueNumber, `AttachedPackage: 📦 ${join("https://github.com", encodeURI(githubData.orgName as string), encodeURI(repoName), "blob/main", ticketNumber + "", ticketAttachmentId + "", encodeURI(fileName))}. Check this repo for the attachment.`)
               }
               catch (err) {
                 console.log(`>>>>> ⚠️  Not downloadable..`)
@@ -190,7 +190,6 @@ async function createIssueInGitHub(repoName: string, ticket: any) {
         payload = JSON.stringify({
           title: JSON.stringify("Ticket Id: " + ticket["id"] + " Number: " + ticket["number"] + " " + ticket["summary"]),
           body: JSON.stringify(ticket["description"]),
-          assignees: ticket["assigned_to_name"] ? [ticket["assigned_to_name"]] : [],
           labels: labels
         });
         const issuesResponse = await Axios.post(encodeURI(`https://api.github.com/repos/${data.orgName}/${repoName}/issues`), payload, config);
