@@ -1,0 +1,4 @@
+.env
+.content/**/*
+.failures/**/*
+.not-downloadable-from-assembla
