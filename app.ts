@@ -52,8 +52,8 @@ async function parseAssembla() {
   const spacesResponse = await Axios.get("https://api.assembla.com/v1/spaces.json", config);
   const spaces = spacesResponse.data as [];
   console.log(`> 🛸  Got ${spaces.length} assembla spaces to parse...`)
-  for (let index = 0; index < spaces.length; index++) {
-    const space = spaces[index];
+  for (let spaceIndex = 0; spaceIndex < spaces.length; spaceIndex++) {
+    const space = spaces[spaceIndex];
     const spaceId = space["id"];
     const spaceName = space["name"];
     console.log(`>> ☄️  Space ${spaceName}...`)
