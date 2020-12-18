@@ -5,4 +5,5 @@ git lfs track "*.mp4"
 git add .gitattributes
 git add --all
 git commit -am "changes"
+git branch -M main
 git push -u origin main
