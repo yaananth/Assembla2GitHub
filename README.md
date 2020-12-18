@@ -29,4 +29,6 @@ Attachments are downloaded to `.content` directory.
 
 Make sure you push them to GitHub as repositories!
 
+May be using something like https://github.com/yaananth/Assembla2GitHub/blob/main/pushContent.bat
+
 Issue comments just mention about these paths.
