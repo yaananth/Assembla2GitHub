@@ -149,7 +149,8 @@ async function createRepoInGitHub(repoName: string) {
   const successMessage = `😇  ${data.orgName}/${repoName} exists 🎉`;
   try {
     const issuesResponse = await Axios.post(encodeURI(`https://api.github.com/orgs/${data.orgName}/repos`), JSON.stringify({
-      name: repoName
+      name: repoName,
+      private: true
     }), config);
     if (issuesResponse.status == 201) {
       console.log(successMessage);
