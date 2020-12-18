@@ -4,6 +4,8 @@ Nothing fancy, but a quick script.
 
 Feel free to use this as base and improve.
 
+No concurrency/parallelism, just dumb script :)
+
 ## Set up
 
 Create `.env` file with:
