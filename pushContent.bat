@@ -1,5 +1,6 @@
+for %%I in (.) do set CurrDirName=%%~nxI
 git init
-git remote add origin git@github.com:ORG_NAME/%CD%.git
+git remote add origin git@github.com:ORGNAME/%CurrDirName%.git
 git lfs track "*.mp4"
 git add .gitattributes
 git add --all
