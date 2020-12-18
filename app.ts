@@ -5,6 +5,7 @@ import * as fs from "fs";
 import { join } from "path";
 import * as https from "https";
 import { URL } from "url";
+import { exception } from "console";
 
 const Axios = axios.default;
 const timer = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -55,8 +56,8 @@ async function parseAssembla() {
   const spaces = spacesResponse.data as [];
   console.log(`> 🛸  Got ${spaces.length} assembla spaces to parse...`)
   const doneSpaces: string[] = [
-
   ];
+
   for (let spaceIndex = 0; spaceIndex < spaces.length; spaceIndex++) {
     const space = spaces[spaceIndex];
     const spaceId = space["id"];
@@ -67,16 +68,16 @@ async function parseAssembla() {
       continue;
     }
 
-    let pageNumber = 1;
+    let ticketPageNumber = 1;
     while (true) {
       //https://api-docs.assembla.cc/content/ref/tickets_index.html
 
-      const ticketsUrl = `https://api.assembla.com/v1/spaces/${spaceId}/tickets.json?report=0&page=${pageNumber}&per_page=100`;
+      const ticketsUrl = `https://api.assembla.com/v1/spaces/${spaceId}/tickets.json?report=0&page=${ticketPageNumber}&per_page=100`;
       const ticketsResponse = await Axios.get(ticketsUrl, config);
       const tickets = ticketsResponse.data as [];
       if (tickets && tickets.length > 0) {
         console.log(`>>> 🎟️  Got ${tickets.length} tickets ${ticketsUrl}`)
-        pageNumber++;
+        ticketPageNumber++;
 
         const repoName = `assembla_${spaceName}`.replace(" ", "-");
         await createRepoInGitHub(repoName);
@@ -122,31 +123,12 @@ async function parseAssembla() {
               console.log(`>>>>> 📂  Got ${fileName} attachment: ${downloadUrl}`)
               const path = join(ticketNumber + "", ticketAttachmentId + "");
               const dirPath = join(".content", `${githubData.orgName}`, repoName, path);
-              try {
-                await new Promise(resolve => {
-                  fs.mkdirSync(dirPath, { recursive: true });
-                  const writeStream = fs.createWriteStream(join(dirPath, fileName));
-                  const urlType = new URL(downloadUrl);
-                  https.get({
-                    headers: config.headers,
-                    hostname: urlType.host,
-                    protocol: urlType.protocol,
-                    href: urlType.href,
-                    path: urlType.pathname
-                  }, (response) => {
-                    if (response.statusCode == 302) {
-                      console.log(`Fetching from ${response.headers.location}...`)
-                      https.get(response.headers.location as string, (contentResponse) => {
-                        contentResponse.pipe(writeStream);
-                        writeStream.on('finish', resolve);
-                      })
-                    }
-                  })
-                });
+              const success = await download(dirPath, downloadUrl, fileName, config);
+              if (success) {
                 console.log(`>>>>> ⏬  Downloaded, please push the downloaded folders, I will add this as a comment to issue..`)
                 await addCommentToIssueInGitHub(repoName, gitHubIssueNumber, `AttachedPackage: 📦 ${join("https://github.com", githubData.orgName as string, repoName, "blob/main", ticketNumber + "", ticketAttachmentId + "", fileName)}. Check this repo for the attachment.`)
               }
-              catch (err) {
+              else {
                 console.log(`>>>>> ⚠️  Not downloadable..`)
                 fs.appendFileSync(".not-downloadable-from-assembla", `${downloadUrl} ${join(dirPath, fileName)} Issue: ${gitHubIssueNumber}`);
               }
@@ -157,7 +139,53 @@ async function parseAssembla() {
           await timer(1000);
         }
 
-        console.log(`🥱  Waiting for a second before trying page ${pageNumber}...`)
+        console.log(`🥱  Waiting for a second before trying page ${ticketPageNumber}...`)
+        await timer(1000);
+      }
+      else {
+        break;
+      }
+    }
+
+    let documentPageNumber = 1;
+    while (true) {
+      //https://api-docs.assembla.cc/content/ref/documents_index.html
+
+      const documentsUrl = `https://api.assembla.com/v1/spaces/${spaceId}/documents.json?page=${documentPageNumber}&per_page=100`;
+      let documents: any[] = [];
+      try {
+        const documentsResponse = await Axios.get(documentsUrl, config);
+        documents = documentsResponse.data as [];
+      }
+      catch (err) {
+        console.log(`>>> ⚠️  Failed to get ${documentsUrl}`)
+      }
+
+      if (documents && documents.length > 0) {
+        console.log(`>>> 🎟️  Got ${documents.length} documents ${documentsUrl}`)
+        documentPageNumber++;
+
+        const repoName = `assembla_${spaceName}`.replace(" ", "-");
+
+        for (let documentsIndex = 0; documentsIndex < documents.length; documentsIndex++) {
+          const document = documents[documentsIndex];
+          const downloadUrl = document["url"];
+          const fileName = document["name"] || "unknownfilename";
+          console.log(`>>>>> 📂  Got ${fileName} attachment: ${downloadUrl}`)
+          const dirPath = join(".content", `${githubData.orgName}`, repoName, "files");
+          const success = await download(dirPath, downloadUrl, fileName, config);
+          if (success) {
+            console.log(`>>>>> ⏬  Downloaded, please push the downloaded folders`)
+          }
+          else {
+            console.log(`>>>>> ⚠️  Not downloadable..`)
+            fs.appendFileSync(".not-downloadable-from-assembla", `${downloadUrl} ${join(dirPath, fileName)}`);
+          }
+          console.log(`🥱  Waiting for a second before trying next document...`)
+          await timer(1000);
+        }
+
+        console.log(`🥱  Waiting for a second before trying page ${documentPageNumber}...`)
         await timer(1000);
       }
       else {
@@ -167,6 +195,37 @@ async function parseAssembla() {
 
     console.log(`>> ✅  Space ${spaceName}...`)
   }
+}
+
+async function download(dirPath: string, downloadUrl: string, fileName: string, config: any) {
+  let success = true;
+  await new Promise(resolve => {
+    fs.mkdirSync(dirPath, { recursive: true });
+    const writeStream = fs.createWriteStream(join(dirPath, fileName));
+    const urlType = new URL(downloadUrl);
+    https.get({
+      headers: config.headers,
+      hostname: urlType.host,
+      protocol: urlType.protocol,
+      href: urlType.href,
+      path: urlType.pathname
+    }, (response) => {
+      if (response.statusCode == 302) {
+        console.log(`Fetching from ${response.headers.location}...`)
+        https.get(response.headers.location as string, (contentResponse) => {
+          contentResponse.pipe(writeStream);
+          writeStream.on('finish', resolve);
+        })
+      }
+      else {
+        console.error(`Failed with response ${response.statusCode} ${response.statusMessage}`)
+        success = false
+        resolve(null)
+      }
+    })
+  });
+
+  return success
 }
 
 async function createRepoInGitHub(repoName: string) {
