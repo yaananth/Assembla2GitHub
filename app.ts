@@ -100,8 +100,9 @@ async function parseAssembla() {
             console.log(`>>>> 💬  Got ${ticketComments.length} comments on ticket ${ticketNumber} ${ticketSummary}`);
             for (let ticketCommentIndex = 0; ticketCommentIndex < ticketComments.length; ticketCommentIndex++) {
               const ticketComment = ticketComments[ticketCommentIndex];
-              if (ticketComment["comment"]) {
-                await addCommentToIssueInGitHub(repoName, gitHubIssueNumber, ticketComment["comment"])
+              const comment = ticketComment["comment"] as string;
+              if (comment && comment.trim()) {
+                await addCommentToIssueInGitHub(repoName, gitHubIssueNumber, comment)
               }
             }
           }
